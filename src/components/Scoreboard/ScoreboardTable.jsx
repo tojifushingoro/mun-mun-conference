@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Check, X } from 'lucide-react'
 import { formatGrade } from '../../lib/utils'
 import DevTag from '../Common/DevTag'
+import { playScoreAdded, playError } from '../../lib/sfx'
 
 export default function ScoreboardTable({ delegates, scores, onAddScore }) {
   const [editing, setEditing] = useState(null) // { delegateId, category }
@@ -31,11 +32,13 @@ export default function ScoreboardTable({ delegates, scores, onAddScore }) {
     if (!editing) return
     const value = Number(draft)
     if (draft !== '' && !Number.isNaN(value)) {
-      await onAddScore({
+      const ok = await onAddScore({
         delegate_id: editing.delegateId,
         category: editing.category,
         points: value,
       })
+      if (ok) playScoreAdded()
+      else playError()
     }
     setEditing(null)
   }

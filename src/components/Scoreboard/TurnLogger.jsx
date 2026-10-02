@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Plus, Loader2 } from 'lucide-react'
 import { isDevTagged } from '../Common/DevTag'
+import { playScoreAdded, playError } from '../../lib/sfx'
 
 const DEFAULT_CATEGORIES = [
   'Speech',
@@ -47,9 +48,12 @@ export default function TurnLogger({ delegates, onAddScore, committees }) {
     setSubmitting(false)
 
     if (success) {
+      playScoreAdded()
       setPoints('')
       setCategoryInput('')
       setCustomCategory(false)
+    } else {
+      playError()
     }
   }
 

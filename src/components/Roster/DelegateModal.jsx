@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { X, MapPin, GraduationCap, Users, FileText, Trophy, Trash2 } from 'lucide-react'
 import { formatGrade } from '../../lib/utils'
 import DevTag from '../Common/DevTag'
+import { playScoreRemoved, playError } from '../../lib/sfx'
 
 export default function DelegateModal({ delegate, scores, isOpen, onClose, onDeleteScore }) {
   // Escape closes, and the page behind shouldn't scroll while it's open
@@ -35,7 +36,9 @@ export default function DelegateModal({ delegate, scores, isOpen, onClose, onDel
 
   const handleDelete = async (scoreId) => {
     if (window.confirm('Delete this score entry?')) {
-      await onDeleteScore?.(scoreId)
+      const ok = await onDeleteScore?.(scoreId)
+      if (ok === false) playError()
+      else playScoreRemoved()
     }
   }
 

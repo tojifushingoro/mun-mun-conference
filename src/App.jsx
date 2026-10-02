@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { LayoutDashboard, Users, BarChart3, Globe } from 'lucide-react'
 import NavTabs from './components/Common/NavTabs'
 import ConnectionBadge from './components/Common/ConnectionBadge'
+import SoundToggle from './components/Common/SoundToggle'
 import AdminDashboard from './pages/AdminDashboard'
 import DiasRoster from './pages/DiasRoster'
 import LiveScoreboard from './pages/LiveScoreboard'
@@ -28,13 +29,15 @@ export default function App() {
                 <h1 className="text-xl font-bold text-slate-900 sm:text-2xl">MUN Conference Manager</h1>
                 <p className="text-sm text-slate-600">Model United Nations — Dias Dashboard</p>
               </div>
-              <div className="ml-2 hidden sm:block">
+              <div className="ml-2 hidden items-center gap-2 sm:flex">
                 <ConnectionBadge />
+                <SoundToggle />
               </div>
             </div>
             <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center lg:w-auto lg:min-w-[380px]">
-              <div className="sm:hidden">
+              <div className="flex items-center gap-2 sm:hidden">
                 <ConnectionBadge />
+                <SoundToggle />
               </div>
               <div className="w-full sm:w-auto sm:min-w-[380px]">
                 <NavTabs tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Trash2, History, Check, X } from 'lucide-react'
 import { formatGrade } from '../../lib/grades'
 import DevTag from '../Common/DevTag'
+import { playScoreRemoved, playError } from '../../lib/sfx'
 
 export default function ScoreLog({ scores, delegates, onDeleteScore, committeeName }) {
   const [confirmId, setConfirmId] = useState(null)
@@ -28,7 +29,9 @@ export default function ScoreLog({ scores, delegates, onDeleteScore, committeeNa
   const requestDelete = (id) => setConfirmId(id)
 
   const confirmDelete = async (id) => {
-    await onDeleteScore(id)
+    const ok = await onDeleteScore(id)
+    if (ok) playScoreRemoved()
+    else playError()
     setConfirmId(null)
   }
 
