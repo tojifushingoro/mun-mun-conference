@@ -1,5 +1,18 @@
 import { useEffect, useRef } from 'react'
 import { supabase, isSupabaseConfigured } from '../config/supabase'
+import { setConnectionStatus } from '../lib/connectionStatus'
+
+/**
+ * Reduces Supabase's channel callbacks to one app-wide connection state.
+ * Both channels must be SUBSCRIBED before we call the app "live" — either
+ * one sitting in CHANNEL_ERROR or TIMED_OUT means chairs are not in sync.
+ */
+function trackChannelStatus(status) {
+  if (status === 'SUBSCRIBED') setConnectionStatus('live')
+  else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+    setConnectionStatus('offline')
+  }
+}
 
 /**
  * Subscribes to INSERT / UPDATE / DELETE postgres_changes events on the
@@ -17,7 +30,10 @@ export function useRealtimeSubscriptions({ onDelegateChange, onScoreChange }) {
   scoreHandlerRef.current = onScoreChange
 
   useEffect(() => {
-    if (!isSupabaseConfigured) return
+    if (!isSupabaseConfigured) {
+      setConnectionStatus('offline')
+      return
+    }
 
     if (!delegateChannelRef.current) {
       delegateChannelRef.current = supabase
@@ -30,7 +46,10 @@ export function useRealtimeSubscriptions({ onDelegateChange, onScoreChange }) {
             delegateHandlerRef.current?.(payload)
           },
         )
-        .subscribe((status) => console.log('Delegates realtime status:', status))
+        .subscribe((status) => {
+          console.log('Delegates realtime status:', status)
+          trackChannelStatus(status)
+        })
     }
 
     if (!scoreChannelRef.current) {
@@ -44,7 +63,10 @@ export function useRealtimeSubscriptions({ onDelegateChange, onScoreChange }) {
             scoreHandlerRef.current?.(payload)
           },
         )
-        .subscribe((status) => console.log('Scores realtime status:', status))
+        .subscribe((status) => {
+          console.log('Scores realtime status:', status)
+          trackChannelStatus(status)
+        })
     }
 
     return () => {

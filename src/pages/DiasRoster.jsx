@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { Users, Grid } from 'lucide-react'
 import RosterFilters from '../components/Roster/RosterFilters'
 import DelegateCard from '../components/Roster/DelegateCard'
@@ -8,7 +8,8 @@ import { useCommittees } from '../hooks/useCommittees'
 import { useDelegates } from '../hooks/useDelegates'
 import { useScores } from '../hooks/useScores'
 import { useRealtimeSubscriptions } from '../hooks/useRealtimeScores'
-import { normalizeGrade } from '../lib/grades'
+import { normalizeGrade, gradeSort } from '../lib/grades'
+import { isStaffRole } from '../lib/utils'
 
 export default function DiasRoster() {
   const { committees, loading: committeesLoading } = useCommittees()
@@ -18,6 +19,9 @@ export default function DiasRoster() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCommittee, setSelectedCommittee] = useState('')
   const [selectedGrade, setSelectedGrade] = useState('')
+  const [selectedRole, setSelectedRole] = useState('')
+  const [excludeStaff, setExcludeStaff] = useState(false)
+  const [sortBy, setSortBy] = useState('name_asc')
   const [selectedDelegate, setSelectedDelegate] = useState(null)
 
   const handleDelegateChange = useCallback(
@@ -53,22 +57,60 @@ export default function DiasRoster() {
 
   useRealtimeSubscriptions({ onDelegateChange: handleDelegateChange, onScoreChange: handleScoreChange })
 
-  const filteredDelegates = delegates.filter((delegate) => {
+  // Total points per delegate, computed once. Keyed as a string because
+  // delegate ids can arrive as bigint or uuid depending on the query.
+  const scoreTotals = useMemo(() => {
+    const totals = new Map()
+    for (const s of scores) {
+      const key = String(s.delegate_id)
+      totals.set(key, (totals.get(key) || 0) + (Number(s.points) || 0))
+    }
+    return totals
+  }, [scores])
+
+  const filteredDelegates = useMemo(() => {
     const q = searchTerm.trim().toLowerCase()
-    const matchesSearch =
-      !q ||
-      delegate.name?.toLowerCase().includes(q) ||
-      delegate.country?.toLowerCase().includes(q) ||
-      delegate.role?.toLowerCase().includes(q)
 
-    const matchesCommittee = !selectedCommittee || delegate.committee_id === selectedCommittee
-    const matchesGrade = !selectedGrade || normalizeGrade(delegate.grade) === selectedGrade
+    const result = delegates.filter((delegate) => {
+      const matchesSearch =
+        !q ||
+        delegate.name?.toLowerCase().includes(q) ||
+        delegate.country?.toLowerCase().includes(q) ||
+        delegate.role?.toLowerCase().includes(q)
 
-    return matchesSearch && matchesCommittee && matchesGrade
-  })
+      const matchesCommittee = !selectedCommittee || delegate.committee_id === selectedCommittee
+      const matchesGrade = !selectedGrade || normalizeGrade(delegate.grade) === selectedGrade
+      const matchesRole = !selectedRole || delegate.role === selectedRole
+      const matchesStaff = !excludeStaff || !isStaffRole(delegate.role)
 
-  const getDelegateTotalScore = (delegateId) =>
-    scores.filter((s) => s.delegate_id === delegateId).reduce((sum, s) => sum + (Number(s.points) || 0), 0)
+      return matchesSearch && matchesCommittee && matchesGrade && matchesRole && matchesStaff
+    })
+
+    // sortBy is a "<field>_<direction>" value, e.g. "grade_desc"
+    const [field, direction] = sortBy.split('_')
+    const factor = direction === 'desc' ? -1 : 1
+    const byText = (getter) => (a, b) => factor * getter(a).localeCompare(getter(b))
+    const byNumber = (getter) => (a, b) => factor * (getter(a) - getter(b))
+
+    const comparators = {
+      name: byText((d) => d.name || ''),
+      country: byText((d) => d.country || ''),
+      committee: byText((d) => d.committees?.name || ''),
+      grade: byNumber((d) => gradeSort(d.grade)),
+      score: byNumber((d) => scoreTotals.get(String(d.id)) ?? 0),
+    }
+
+    return [...result].sort(comparators[field] ?? comparators.name)
+  }, [
+    delegates,
+    scoreTotals,
+    searchTerm,
+    selectedCommittee,
+    selectedGrade,
+    selectedRole,
+    excludeStaff,
+    sortBy,
+  ])
 
   const loading = committeesLoading || delegatesLoading || scoresLoading
 
@@ -93,6 +135,12 @@ export default function DiasRoster() {
         setSelectedCommittee={setSelectedCommittee}
         selectedGrade={selectedGrade}
         setSelectedGrade={setSelectedGrade}
+        selectedRole={selectedRole}
+        setSelectedRole={setSelectedRole}
+        excludeStaff={excludeStaff}
+        setExcludeStaff={setExcludeStaff}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
         committees={committees}
         delegates={delegates}
       />
@@ -112,15 +160,38 @@ export default function DiasRoster() {
           <LoadingSpinner size="lg" />
         </div>
       ) : filteredDelegates.length === 0 ? (
-        <div className="py-12 text-center text-slate-500">No delegates match your search criteria.</div>
+        <div className="card py-12 text-center">
+          <Users className="mx-auto mb-3 h-10 w-10 text-slate-300" />
+          <p className="font-medium text-slate-700">No delegates match these filters</p>
+          <p className="mt-1 text-sm text-slate-500">
+            {delegates.length === 0
+              ? 'Register delegates in the Admin tab to get started.'
+              : 'Try clearing the search or filters above.'}
+          </p>
+          {delegates.length > 0 && (
+            <button
+              onClick={() => {
+                setSearchTerm('')
+                setSelectedCommittee('')
+                setSelectedGrade('')
+                setSelectedRole('')
+                setExcludeStaff(false)
+              }}
+              className="btn-secondary mt-4"
+            >
+              Clear all filters
+            </button>
+          )}
+        </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filteredDelegates.map((delegate) => (
+          {filteredDelegates.map((delegate, index) => (
             <DelegateCard
               key={delegate.id}
+              index={index}
               delegate={delegate}
               onClick={() => setSelectedDelegate(delegate)}
-              totalScore={getDelegateTotalScore(delegate.id)}
+              totalScore={scoreTotals.get(String(delegate.id)) ?? 0}
             />
           ))}
         </div>

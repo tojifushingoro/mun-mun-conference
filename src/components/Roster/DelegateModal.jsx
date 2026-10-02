@@ -1,8 +1,27 @@
+import { useEffect } from 'react'
 import { X, MapPin, GraduationCap, Users, FileText, Trophy, Trash2 } from 'lucide-react'
 import { formatGrade } from '../../lib/utils'
 import DevTag from '../Common/DevTag'
 
 export default function DelegateModal({ delegate, scores, isOpen, onClose, onDeleteScore }) {
+  // Escape closes, and the page behind shouldn't scroll while it's open
+  useEffect(() => {
+    if (!isOpen) return
+
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') onClose()
+    }
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    document.addEventListener('keydown', onKeyDown)
+
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      document.body.style.overflow = previousOverflow
+    }
+  }, [isOpen, onClose])
+
   if (!isOpen || !delegate) return null
 
   const totalScore = scores.reduce((sum, score) => sum + (Number(score.points) || 0), 0)
@@ -22,11 +41,14 @@ export default function DelegateModal({ delegate, scores, isOpen, onClose, onDel
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm animate-fade-in"
       onClick={onClose}
     >
       <div
-        className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white shadow-xl"
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${delegate.name} profile`}
+        className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white shadow-2xl animate-pop-in"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="sticky top-0 flex items-center justify-between border-b border-slate-200 bg-white p-6">

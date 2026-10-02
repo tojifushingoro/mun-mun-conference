@@ -2,11 +2,12 @@ import { MapPin, GraduationCap, Users } from 'lucide-react'
 import { formatGrade } from '../../lib/utils'
 import DevTag from '../Common/DevTag'
 
-export default function DelegateCard({ delegate, onClick, totalScore = 0 }) {
+export default function DelegateCard({ delegate, onClick, totalScore = 0, index = 0 }) {
   return (
     <button
       onClick={onClick}
-      className="card w-full cursor-pointer text-left transition-all hover:shadow-md hover:ring-2 hover:ring-blue-500"
+      style={{ '--stagger-i': Math.min(index, 11) }}
+      className="card w-full cursor-pointer text-left transition-all hover:-translate-y-0.5 hover:shadow-md hover:ring-2 hover:ring-blue-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 animate-stagger"
     >
       <div className="mb-4 flex items-start justify-between gap-2">
         <div>

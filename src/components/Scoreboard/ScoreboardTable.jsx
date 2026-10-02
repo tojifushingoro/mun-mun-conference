@@ -42,6 +42,13 @@ export default function ScoreboardTable({ delegates, scores, onAddScore }) {
 
   const sorted = [...delegates].sort((a, b) => getTotal(b.id) - getTotal(a.id))
 
+  // Give the podium a little visual weight so chairs can spot leaders fast
+  const rankStyles = {
+    0: 'bg-amber-100 text-amber-800 ring-amber-300',
+    1: 'bg-slate-200 text-slate-700 ring-slate-300',
+    2: 'bg-orange-100 text-orange-800 ring-orange-300',
+  }
+
   if (delegates.length === 0) {
     return (
       <div className="py-8 text-center text-slate-500">
@@ -58,10 +65,13 @@ export default function ScoreboardTable({ delegates, scores, onAddScore }) {
       <table className="min-w-full divide-y divide-slate-200">
         <thead>
           <tr className="bg-slate-50">
-            <th className="sticky left-0 z-10 bg-slate-50 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
+            <th className="sticky left-0 z-10 w-12 bg-slate-50 px-3 py-3 text-center text-xs font-medium uppercase tracking-wider text-slate-500">
+              #
+            </th>
+            <th className="sticky left-12 z-10 bg-slate-50 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
               Country
             </th>
-            <th className="sticky left-40 z-10 bg-slate-50 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
+            <th className="sticky left-52 z-10 bg-slate-50 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
               Delegate
             </th>
             {categories.map((category) => (
@@ -78,14 +88,25 @@ export default function ScoreboardTable({ delegates, scores, onAddScore }) {
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-200 bg-white">
-          {sorted.map((delegate) => {
+          {sorted.map((delegate, rank) => {
             const total = getTotal(delegate.id)
             return (
-              <tr key={delegate.id} className="hover:bg-slate-50">
-                <td className="sticky left-0 z-10 whitespace-nowrap bg-white px-4 py-3 text-sm font-medium text-slate-900">
+              <tr key={delegate.id} className="hover:bg-slate-50 transition-colors">
+                <td className="sticky left-0 z-10 bg-white px-3 py-3 text-center text-xs font-semibold text-slate-500">
+                  {rank < 3 ? (
+                    <span
+                      className={`inline-flex h-6 w-6 items-center justify-center rounded-full ring-1 ${rankStyles[rank]}`}
+                    >
+                      {rank + 1}
+                    </span>
+                  ) : (
+                    <span className="text-slate-400">{rank + 1}</span>
+                  )}
+                </td>
+                <td className="sticky left-12 z-10 whitespace-nowrap bg-white px-4 py-3 text-sm font-medium text-slate-900">
                   {delegate.country || <span className="text-slate-400">—</span>}
                 </td>
-                <td className="sticky left-40 z-10 whitespace-nowrap bg-white px-4 py-3 text-sm text-slate-700">
+                <td className="sticky left-52 z-10 whitespace-nowrap bg-white px-4 py-3 text-sm text-slate-700">
                   <span className="inline-flex items-center gap-1.5">
                     <span className="font-medium text-slate-900">{delegate.name}</span>
                     <DevTag name={delegate.name} />
