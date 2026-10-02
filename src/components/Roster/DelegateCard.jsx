@@ -18,10 +18,12 @@ export default function DelegateCard({ delegate, onClick, totalScore = 0 }) {
       </div>
 
       <div className="space-y-2">
-        <div className="flex items-center gap-2 text-sm text-slate-600">
-          <MapPin className="h-4 w-4 shrink-0" />
-          <span>{delegate.country}</span>
-        </div>
+        {delegate.country && (
+          <div className="flex items-center gap-2 text-sm text-slate-600">
+            <MapPin className="h-4 w-4 shrink-0" />
+            <span>{delegate.country}</span>
+          </div>
+        )}
         {delegate.grade && (
           <div className="flex items-center gap-2 text-sm text-slate-600">
             <GraduationCap className="h-4 w-4 shrink-0" />

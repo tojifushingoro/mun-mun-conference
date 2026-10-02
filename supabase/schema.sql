@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS public.delegates (
   name         TEXT NOT NULL,
   grade        TEXT,
   committee_id UUID NOT NULL,
-  country      TEXT NOT NULL,
+  country      TEXT,
   role         TEXT NOT NULL DEFAULT 'Delegate',
   notes        TEXT,
   created_at   TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now()),

@@ -75,7 +75,7 @@ export default function ScoreboardTable({ delegates, scores, onAddScore }) {
             return (
               <tr key={delegate.id} className="hover:bg-slate-50">
                 <td className="sticky left-0 z-10 whitespace-nowrap bg-white px-4 py-3 text-sm font-medium text-slate-900">
-                  {delegate.country}
+                  {delegate.country || <span className="text-slate-400">—</span>}
                 </td>
                 <td className="sticky left-40 z-10 whitespace-nowrap bg-white px-4 py-3 text-sm text-slate-700">
                   <span className="font-medium text-slate-900">{delegate.name}</span>

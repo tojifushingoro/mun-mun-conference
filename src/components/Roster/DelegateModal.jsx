@@ -42,10 +42,12 @@ export default function DelegateModal({ delegate, scores, isOpen, onClose, onDel
           <div>
             <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500">Profile</h3>
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-slate-400" />
-                <span className="text-sm text-slate-700">{delegate.country}</span>
-              </div>
+              {delegate.country && (
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-slate-400" />
+                  <span className="text-sm text-slate-700">{delegate.country}</span>
+                </div>
+              )}
               {delegate.grade && (
                 <div className="flex items-center gap-2">
                   <GraduationCap className="h-4 w-4 text-slate-400" />

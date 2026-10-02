@@ -1,9 +1,7 @@
 import { useState } from 'react'
 import { Edit2, Trash2, Save, X, UserPlus } from 'lucide-react'
 import LoadingSpinner from '../Common/LoadingSpinner'
-import { formatGrade, normalizeGrade, gradeSort, GRADE_LEVELS } from '../../lib/utils'
-
-const ROLES = ['Delegate', 'Chair', 'Vice Chair', 'Rapporteur', 'Observer', 'Gavel']
+import { formatGrade, normalizeGrade, gradeSort, GRADE_LEVELS, ROLES, isStaffRole } from '../../lib/utils'
 
 const EMPTY = {
   name: '',
@@ -27,13 +25,17 @@ export default function DelegatePanel({ delegates, committees, loading, onAdd, o
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!formData.name.trim() || !formData.committee_id || !formData.country.trim()) return
+    if (!formData.name.trim() || !formData.committee_id) return
+
+    // Country is mandatory for country representatives, optional for staff roles
+    const staff = isStaffRole(formData.role)
+    if (!staff && !formData.country.trim()) return
 
     const payload = {
       name: formData.name.trim(),
       grade: formData.grade ? formData.grade.trim() : null,
       committee_id: formData.committee_id,
-      country: formData.country.trim(),
+      country: formData.country.trim() || null,
       role: formData.role,
       notes: formData.notes.trim() || null,
     }
@@ -92,15 +94,24 @@ export default function DelegatePanel({ delegates, committees, loading, onAdd, o
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Country *</label>
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Country {!isStaffRole(formData.role) && '*'}
+              </label>
               <input
                 type="text"
                 value={formData.country}
                 onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                placeholder="e.g., United States"
+                placeholder={
+                  isStaffRole(formData.role) ? 'Optional for staff roles' : 'e.g., United States'
+                }
                 className="input-field"
-                required
+                required={!isStaffRole(formData.role)}
               />
+              {isStaffRole(formData.role) && (
+                <p className="mt-1 text-xs text-slate-500">
+                  Staff roles (Chair, Vice Chair, Rapporteur, Observer) don't represent a nation.
+                </p>
+              )}
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium text-slate-700">Grade</label>
@@ -198,7 +209,9 @@ export default function DelegatePanel({ delegates, committees, loading, onAdd, o
               {delegates.map((delegate) => (
                 <tr key={delegate.id} className="hover:bg-slate-50">
                   <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-slate-900">{delegate.name}</td>
-                  <td className="whitespace-nowrap px-4 py-3 text-sm text-slate-700">{delegate.country}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-sm text-slate-700">
+                    {delegate.country || <span className="text-slate-400">—</span>}
+                  </td>
                   <td className="whitespace-nowrap px-4 py-3 text-sm text-slate-700">{formatGrade(delegate.grade)}</td>
                   <td className="whitespace-nowrap px-4 py-3 text-sm text-slate-700">
                     {delegate.committees?.name || 'N/A'}
