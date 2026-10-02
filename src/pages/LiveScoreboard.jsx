@@ -9,6 +9,7 @@ import { useCommittees } from '../hooks/useCommittees'
 import { useDelegates } from '../hooks/useDelegates'
 import { useScores } from '../hooks/useScores'
 import { useRealtimeSubscriptions } from '../hooks/useRealtimeScores'
+import { isStaffRole } from '../lib/utils'
 
 export default function LiveScoreboard() {
   const { committees, loading: committeesLoading } = useCommittees()
@@ -55,11 +56,16 @@ export default function LiveScoreboard() {
 
   useRealtimeSubscriptions({ onDelegateChange: handleDelegateChange, onScoreChange: handleScoreChange })
 
+  // Everyone registered to the selected committee - used to resolve names
   const committeeDelegates = delegates.filter((d) => d.committee_id === activeCommittee)
+
+  // Staff Dias (Chair, Vice Chair, Rapporteur, Observer, Gavel) run the
+  // committee rather than represent a nation, so they get no scoreboard row.
+  const scoredDelegates = committeeDelegates.filter((d) => !isStaffRole(d.role))
 
   // Only show turns belonging to the active committee, scoped by delegate id
   // (works whether delegate ids are bigint or uuid)
-  const committeeDelegateIds = new Set(committeeDelegates.map((d) => String(d.id)))
+  const committeeDelegateIds = new Set(scoredDelegates.map((d) => String(d.id)))
   const committeeScores = scores.filter((s) => committeeDelegateIds.has(String(s.delegate_id)))
   const activeName = committees.find((c) => c.id === activeCommittee)?.name
   const loading = committeesLoading || delegatesLoading || scoresLoading
@@ -78,7 +84,11 @@ export default function LiveScoreboard() {
         </div>
       </div>
 
-      <TurnLogger delegates={delegates} committees={committees} onAddScore={addScore} />
+      <TurnLogger
+        delegates={delegates.filter((d) => !isStaffRole(d.role))}
+        committees={committees}
+        onAddScore={addScore}
+      />
 
       <CommitteeTab
         committees={committees}
@@ -98,11 +108,11 @@ export default function LiveScoreboard() {
         <div className="space-y-6">
           <div className="card">
             <h2 className="mb-4 text-lg font-semibold text-slate-900">{activeName}</h2>
-            <ScoreboardTable delegates={committeeDelegates} scores={scores} onAddScore={addScore} />
+            <ScoreboardTable delegates={scoredDelegates} scores={scores} onAddScore={addScore} />
           </div>
           <ScoreLog
             scores={committeeScores}
-            delegates={committeeDelegates}
+            delegates={scoredDelegates}
             onDeleteScore={deleteScore}
             committeeName={activeName}
           />

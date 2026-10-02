@@ -43,7 +43,14 @@ export default function ScoreboardTable({ delegates, scores, onAddScore }) {
   const sorted = [...delegates].sort((a, b) => getTotal(b.id) - getTotal(a.id))
 
   if (delegates.length === 0) {
-    return <div className="py-8 text-center text-slate-500">No delegates in this committee.</div>
+    return (
+      <div className="py-8 text-center text-slate-500">
+        No delegates to score in this committee.
+        <span className="mt-1 block text-xs text-slate-400">
+          Chairs and other staff roles are excluded from the scoreboard.
+        </span>
+      </div>
+    )
   }
 
   return (
