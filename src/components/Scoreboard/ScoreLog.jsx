@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Trash2, History, Check, X } from 'lucide-react'
 import { formatGrade } from '../../lib/grades'
+import DevTag from '../Common/DevTag'
 
 export default function ScoreLog({ scores, delegates, onDeleteScore, committeeName }) {
   const [confirmId, setConfirmId] = useState(null)
@@ -79,7 +80,10 @@ export default function ScoreLog({ scores, delegates, onDeleteScore, committeeNa
                       : '—'}
                   </td>
                   <td className="px-4 py-2 text-sm text-slate-900">
-                    <span className="font-medium">{delegate?.name || 'Unknown delegate'}</span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="font-medium">{delegate?.name || 'Unknown delegate'}</span>
+                      <DevTag name={delegate?.name} />
+                    </span>
                     {delegate?.country && (
                       <span className="ml-2 text-xs text-slate-500">{delegate.country}</span>
                     )}

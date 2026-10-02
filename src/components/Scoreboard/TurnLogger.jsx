@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Plus, Loader2 } from 'lucide-react'
+import { isDevTagged } from '../Common/DevTag'
 
 const DEFAULT_CATEGORIES = [
   'Speech',
@@ -88,7 +89,8 @@ export default function TurnLogger({ delegates, onAddScore, committees }) {
             <option value="">Select Delegate</option>
             {visibleDelegates.map((delegate) => (
               <option key={delegate.id} value={delegate.id}>
-                {delegate.name} — {delegate.country}
+                {delegate.name}
+                {isDevTagged(delegate.name) ? ' [dev]' : ''} — {delegate.country}
               </option>
             ))}
           </select>

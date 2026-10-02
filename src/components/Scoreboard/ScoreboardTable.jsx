@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Check, X } from 'lucide-react'
 import { formatGrade } from '../../lib/utils'
+import DevTag from '../Common/DevTag'
 
 export default function ScoreboardTable({ delegates, scores, onAddScore }) {
   const [editing, setEditing] = useState(null) // { delegateId, category }
@@ -78,7 +79,10 @@ export default function ScoreboardTable({ delegates, scores, onAddScore }) {
                   {delegate.country || <span className="text-slate-400">—</span>}
                 </td>
                 <td className="sticky left-40 z-10 whitespace-nowrap bg-white px-4 py-3 text-sm text-slate-700">
-                  <span className="font-medium text-slate-900">{delegate.name}</span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="font-medium text-slate-900">{delegate.name}</span>
+                    <DevTag name={delegate.name} />
+                  </span>
                   <span className="ml-2 text-xs text-slate-400">{formatGrade(delegate.grade)}</span>
                 </td>
 

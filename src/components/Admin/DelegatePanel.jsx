@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Edit2, Trash2, Save, X, UserPlus } from 'lucide-react'
 import LoadingSpinner from '../Common/LoadingSpinner'
 import { formatGrade, normalizeGrade, gradeSort, GRADE_LEVELS, ROLES, isStaffRole } from '../../lib/utils'
+import DevTag from '../Common/DevTag'
 
 const EMPTY = {
   name: '',
@@ -208,7 +209,12 @@ export default function DelegatePanel({ delegates, committees, loading, onAdd, o
             <tbody className="divide-y divide-slate-200 bg-white">
               {delegates.map((delegate) => (
                 <tr key={delegate.id} className="hover:bg-slate-50">
-                  <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-slate-900">{delegate.name}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-slate-900">
+                    <span className="inline-flex items-center gap-1.5">
+                      {delegate.name}
+                      <DevTag name={delegate.name} />
+                    </span>
+                  </td>
                   <td className="whitespace-nowrap px-4 py-3 text-sm text-slate-700">
                     {delegate.country || <span className="text-slate-400">—</span>}
                   </td>

@@ -1,5 +1,6 @@
 import { X, MapPin, GraduationCap, Users, FileText, Trophy, Trash2 } from 'lucide-react'
 import { formatGrade } from '../../lib/utils'
+import DevTag from '../Common/DevTag'
 
 export default function DelegateModal({ delegate, scores, isOpen, onClose, onDeleteScore }) {
   if (!isOpen || !delegate) return null
@@ -30,7 +31,10 @@ export default function DelegateModal({ delegate, scores, isOpen, onClose, onDel
       >
         <div className="sticky top-0 flex items-center justify-between border-b border-slate-200 bg-white p-6">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">{delegate.name}</h2>
+            <h2 className="flex flex-wrap items-center gap-2 text-xl font-semibold text-slate-900">
+              {delegate.name}
+              <DevTag name={delegate.name} />
+            </h2>
             <p className="text-slate-600">{delegate.role}</p>
           </div>
           <button onClick={onClose} className="btn-secondary p-2" title="Close">

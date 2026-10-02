@@ -1,5 +1,6 @@
 import { MapPin, GraduationCap, Users } from 'lucide-react'
 import { formatGrade } from '../../lib/utils'
+import DevTag from '../Common/DevTag'
 
 export default function DelegateCard({ delegate, onClick, totalScore = 0 }) {
   return (
@@ -9,7 +10,10 @@ export default function DelegateCard({ delegate, onClick, totalScore = 0 }) {
     >
       <div className="mb-4 flex items-start justify-between gap-2">
         <div>
-          <h3 className="text-lg font-semibold text-slate-900">{delegate.name}</h3>
+          <h3 className="flex flex-wrap items-center gap-2 text-lg font-semibold text-slate-900">
+            {delegate.name}
+            <DevTag name={delegate.name} />
+          </h3>
           <p className="text-sm text-slate-600">{delegate.role}</p>
         </div>
         <div className="rounded-full bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-700">
