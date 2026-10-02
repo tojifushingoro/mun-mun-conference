@@ -20,7 +20,7 @@ export default function DiasRoster() {
   const [selectedCommittee, setSelectedCommittee] = useState('')
   const [selectedGrade, setSelectedGrade] = useState('')
   const [selectedRole, setSelectedRole] = useState('')
-  const [excludeStaff, setExcludeStaff] = useState(false)
+  const [excludeStaff, setExcludeStaff] = useState(true)
   const [sortBy, setSortBy] = useState('name_asc')
   const [selectedDelegate, setSelectedDelegate] = useState(null)
 
@@ -175,7 +175,7 @@ export default function DiasRoster() {
                 setSelectedCommittee('')
                 setSelectedGrade('')
                 setSelectedRole('')
-                setExcludeStaff(false)
+                setExcludeStaff(true)
               }}
               className="btn-secondary mt-4"
             >

@@ -33,6 +33,13 @@ export default function RosterFilters({
     (a, b) => gradeSort(a) - gradeSort(b),
   )
 
+  // Picking a staff role while staff are hidden would show nothing at all,
+  // so reveal them automatically to keep the filter honest
+  const handleRoleChange = (role) => {
+    setSelectedRole(role)
+    if (role && role !== 'Delegate') setExcludeStaff(false)
+  }
+
   // Only offer roles that are actually in use, so the dropdown isn't padding
   const rolesInUse = ROLES.filter((r) => delegates.some((d) => d.role === r))
   const staffCount = delegates.filter((d) => d.role && d.role !== 'Delegate').length
@@ -79,7 +86,7 @@ export default function RosterFilters({
 
         <select
           value={selectedRole}
-          onChange={(e) => setSelectedRole(e.target.value)}
+          onChange={(e) => handleRoleChange(e.target.value)}
           className="select-field"
         >
           <option value="">All Roles</option>
