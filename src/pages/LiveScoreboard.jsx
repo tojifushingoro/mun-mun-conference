@@ -3,6 +3,7 @@ import { BarChart3 } from 'lucide-react'
 import CommitteeTab from '../components/Scoreboard/CommitteeTab'
 import TurnLogger from '../components/Scoreboard/TurnLogger'
 import ScoreboardTable from '../components/Scoreboard/ScoreboardTable'
+import ScoreLog from '../components/Scoreboard/ScoreLog'
 import LoadingSpinner from '../components/Common/LoadingSpinner'
 import { useCommittees } from '../hooks/useCommittees'
 import { useDelegates } from '../hooks/useDelegates'
@@ -12,7 +13,7 @@ import { useRealtimeSubscriptions } from '../hooks/useRealtimeScores'
 export default function LiveScoreboard() {
   const { committees, loading: committeesLoading } = useCommittees()
   const { delegates, loading: delegatesLoading, setDelegates, refetch: refetchDelegates } = useDelegates()
-  const { scores, loading: scoresLoading, addScore, setScores } = useScores()
+  const { scores, loading: scoresLoading, addScore, setScores, deleteScore } = useScores()
 
   const [activeCommittee, setActiveCommittee] = useState('')
 
@@ -55,6 +56,11 @@ export default function LiveScoreboard() {
   useRealtimeSubscriptions({ onDelegateChange: handleDelegateChange, onScoreChange: handleScoreChange })
 
   const committeeDelegates = delegates.filter((d) => d.committee_id === activeCommittee)
+
+  // Only show turns belonging to the active committee, scoped by delegate id
+  // (works whether delegate ids are bigint or uuid)
+  const committeeDelegateIds = new Set(committeeDelegates.map((d) => String(d.id)))
+  const committeeScores = scores.filter((s) => committeeDelegateIds.has(String(s.delegate_id)))
   const activeName = committees.find((c) => c.id === activeCommittee)?.name
   const loading = committeesLoading || delegatesLoading || scoresLoading
 
@@ -89,9 +95,17 @@ export default function LiveScoreboard() {
           No committees created yet. Add committees in the Admin Dashboard first.
         </div>
       ) : (
-        <div className="card">
-          <h2 className="mb-4 text-lg font-semibold text-slate-900">{activeName}</h2>
-          <ScoreboardTable delegates={committeeDelegates} scores={scores} onAddScore={addScore} />
+        <div className="space-y-6">
+          <div className="card">
+            <h2 className="mb-4 text-lg font-semibold text-slate-900">{activeName}</h2>
+            <ScoreboardTable delegates={committeeDelegates} scores={scores} onAddScore={addScore} />
+          </div>
+          <ScoreLog
+            scores={committeeScores}
+            delegates={committeeDelegates}
+            onDeleteScore={deleteScore}
+            committeeName={activeName}
+          />
         </div>
       )}
     </div>
