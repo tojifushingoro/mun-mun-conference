@@ -1,13 +1,13 @@
 import { Search, ArrowUpDown } from 'lucide-react'
 import { formatGrade, gradeSort, normalizeGrade } from '../../lib/grades'
-import { ROLES } from '../../lib/utils'
+import { ROLES, isStaffRole } from '../../lib/utils'
 import FilterDropdown from './FilterDropdown'
 
 export const SORT_OPTIONS = [
   { value: 'name_asc', label: 'Name (A to Z)' },
   { value: 'name_desc', label: 'Name (Z to A)' },
   { value: 'grade_desc', label: 'Grade (Year 3 first)' },
-  { value: 'grade_asc', label: 'Grade (Grade 1 first)' },
+  { value: 'grade_asc', label: 'Grade (Grade 4 first)' },
   { value: 'committee_asc', label: 'Committee (A to Z)' },
   { value: 'role_asc', label: 'Role (seniority)' },
   { value: 'country_asc', label: 'Country (A to Z)' },
@@ -42,6 +42,14 @@ export default function RosterFilters({
   }))
 
   const staffCount = delegates.filter((d) => d.role && d.role !== 'Delegate').length
+
+  // Staff are hidden by default, so filtering to a staff-only role (Chair, ACD,
+  // Observer) would otherwise match nothing. Unhide them in that case so the
+  // results are never an empty list the user can't easily explain.
+  const handleRoleChange = (roles) => {
+    setSelectedRoles(roles)
+    if (roles.length > 0 && roles.every(isStaffRole)) setExcludeStaff(false)
+  }
 
   return (
     <div className="card sticky top-2 z-20 mb-6 space-y-4 shadow-md backdrop-blur-sm">
@@ -82,7 +90,7 @@ export default function RosterFilters({
           label="Roles"
           options={roleOptions}
           selected={selectedRoles}
-          onChange={setSelectedRoles}
+          onChange={handleRoleChange}
           emptyText="No roles in use"
         />
       </div>

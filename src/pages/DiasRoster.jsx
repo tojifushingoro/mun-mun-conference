@@ -135,10 +135,10 @@ export default function DiasRoster() {
         setSearchTerm={setSearchTerm}
         selectedCommittee={selectedCommittee}
         setSelectedCommittee={setSelectedCommittee}
-        selectedGrade={selectedGrades}
-        setSelectedGrade={setSelectedGrades}
-        selectedRole={selectedRoles}
-        setSelectedRole={setSelectedRoles}
+        selectedGrades={selectedGrades}
+        setSelectedGrades={setSelectedGrades}
+        selectedRoles={selectedRoles}
+        setSelectedRoles={setSelectedRoles}
         excludeStaff={excludeStaff}
         setExcludeStaff={setExcludeStaff}
         sortBy={sortBy}

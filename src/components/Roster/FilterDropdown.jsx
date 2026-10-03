@@ -7,7 +7,7 @@ import { ChevronDown, Check } from 'lucide-react'
  * A plain <select> can only pick one value, which can't express
  * "hide these three grades". Selecting nothing means "show everything".
  */
-export default function FilterDropdown({ label, options, selected, onChange, emptyText = 'None in use' }) {
+export default function FilterDropdown({ label, options = [], selected = [], onChange, emptyText = 'None in use' }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
