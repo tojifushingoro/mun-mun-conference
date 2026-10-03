@@ -18,8 +18,8 @@ export default function DiasRoster() {
 
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCommittee, setSelectedCommittee] = useState('')
-  const [selectedGrade, setSelectedGrade] = useState('')
-  const [selectedRole, setSelectedRole] = useState('')
+  const [selectedGrades, setSelectedGrades] = useState([])
+  const [selectedRoles, setSelectedRoles] = useState([])
   const [excludeStaff, setExcludeStaff] = useState(true)
   const [sortBy, setSortBy] = useState('name_asc')
   const [selectedDelegate, setSelectedDelegate] = useState(null)
@@ -79,8 +79,9 @@ export default function DiasRoster() {
         delegate.role?.toLowerCase().includes(q)
 
       const matchesCommittee = !selectedCommittee || delegate.committee_id === selectedCommittee
-      const matchesGrade = !selectedGrade || normalizeGrade(delegate.grade) === selectedGrade
-      const matchesRole = !selectedRole || delegate.role === selectedRole
+      const matchesGrade =
+        selectedGrades.length === 0 || selectedGrades.includes(normalizeGrade(delegate.grade))
+      const matchesRole = selectedRoles.length === 0 || selectedRoles.includes(delegate.role)
       const matchesStaff = !excludeStaff || !isStaffRole(delegate.role)
 
       return matchesSearch && matchesCommittee && matchesGrade && matchesRole && matchesStaff
@@ -107,8 +108,8 @@ export default function DiasRoster() {
     scoreTotals,
     searchTerm,
     selectedCommittee,
-    selectedGrade,
-    selectedRole,
+    selectedGrades,
+    selectedRoles,
     excludeStaff,
     sortBy,
   ])
@@ -134,10 +135,10 @@ export default function DiasRoster() {
         setSearchTerm={setSearchTerm}
         selectedCommittee={selectedCommittee}
         setSelectedCommittee={setSelectedCommittee}
-        selectedGrade={selectedGrade}
-        setSelectedGrade={setSelectedGrade}
-        selectedRole={selectedRole}
-        setSelectedRole={setSelectedRole}
+        selectedGrade={selectedGrades}
+        setSelectedGrade={setSelectedGrades}
+        selectedRole={selectedRoles}
+        setSelectedRole={setSelectedRoles}
         excludeStaff={excludeStaff}
         setExcludeStaff={setExcludeStaff}
         sortBy={sortBy}
@@ -174,8 +175,8 @@ export default function DiasRoster() {
               onClick={() => {
                 setSearchTerm('')
                 setSelectedCommittee('')
-                setSelectedGrade('')
-                setSelectedRole('')
+                setSelectedGrades([])
+                setSelectedRoles([])
                 setExcludeStaff(true)
               }}
               className="btn-secondary mt-4"

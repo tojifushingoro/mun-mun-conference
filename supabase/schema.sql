@@ -146,10 +146,12 @@ GROUP BY d.id, d.name, d.country, d.grade, d.role, d.committee_id, c.name;
 --  Reference: grade values used by the app
 --  Stored verbatim in delegates.grade, so these must match
 --  src/lib/grades.js GRADE_LEVELS exactly.
+--  Listed top to bottom, Year 3 most senior.
 -- ============================================================
---  'Grade 3'  'Grade 4'  'Grade 5'  'Grade 6'  'Grade 7'
---  '8 Matric' '9 Matric' '10 Matric'
---  'Year 1'   'Year 2'   'Year 3'
+--  'Year 3'  'Year 2'  'Year 1'
+--  '10 Matric'  '9 Matric'  '8 Matric'
+--  'Pre-IGCSE'
+--  'Grade 6'  'Grade 5'  'Grade 4'  'Grade 3'  'Grade 2'  'Grade 1'
 -- ============================================================
 
 -- ============================================================
@@ -158,5 +160,5 @@ GROUP BY d.id, d.name, d.country, d.grade, d.role, d.committee_id, c.name;
 --  and is excluded from the scoreboard, and does not require a
 --  country.
 -- ============================================================
---  'Delegate'  'Chair'  'Vice Chair'  'Rapporteur'  'Observer'  'Gavel'
+--  'Chair'  'Vice Chair'  'Delegate'  'Observer'
 -- ============================================================

@@ -1,14 +1,15 @@
 import { Search, ArrowUpDown } from 'lucide-react'
-import { formatGrade, gradeSort } from '../../lib/grades'
+import { formatGrade, gradeSort, normalizeGrade } from '../../lib/grades'
 import { ROLES } from '../../lib/utils'
+import FilterDropdown from './FilterDropdown'
 
 export const SORT_OPTIONS = [
   { value: 'name_asc', label: 'Name (A to Z)' },
   { value: 'name_desc', label: 'Name (Z to A)' },
-  { value: 'grade_asc', label: 'Grade (youngest first)' },
-  { value: 'grade_desc', label: 'Grade (oldest first)' },
+  { value: 'grade_desc', label: 'Grade (Year 3 first)' },
+  { value: 'grade_asc', label: 'Grade (Grade 1 first)' },
   { value: 'committee_asc', label: 'Committee (A to Z)' },
-  { value: 'role_asc', label: 'Role (A to Z)' },
+  { value: 'role_asc', label: 'Role (seniority)' },
   { value: 'country_asc', label: 'Country (A to Z)' },
   { value: 'score_desc', label: 'Total score (highest first)' },
   { value: 'score_asc', label: 'Total score (lowest first)' },
@@ -19,10 +20,10 @@ export default function RosterFilters({
   setSearchTerm,
   selectedCommittee,
   setSelectedCommittee,
-  selectedGrade,
-  setSelectedGrade,
-  selectedRole,
-  setSelectedRole,
+  selectedGrades,
+  setSelectedGrades,
+  selectedRoles,
+  setSelectedRoles,
   excludeStaff,
   setExcludeStaff,
   sortBy,
@@ -30,19 +31,16 @@ export default function RosterFilters({
   committees,
   delegates,
 }) {
-  const uniqueGrades = [...new Set(delegates.map((d) => d.grade).filter(Boolean))].sort(
-    (a, b) => gradeSort(a) - gradeSort(b),
-  )
+  // Only offer grades and roles actually in use, in seniority order
+  const gradeOptions = [...new Set(delegates.map((d) => normalizeGrade(d.grade)).filter(Boolean))]
+    .sort((a, b) => gradeSort(b) - gradeSort(a))
+    .map((value) => ({ value, label: formatGrade(value) }))
 
-  // Picking a staff role while staff are hidden would show nothing at all,
-  // so reveal them automatically to keep the filter honest
-  const handleRoleChange = (role) => {
-    setSelectedRole(role)
-    if (role && role !== 'Delegate') setExcludeStaff(false)
-  }
+  const roleOptions = ROLES.filter((r) => delegates.some((d) => d.role === r)).map((role) => ({
+    value: role,
+    label: role,
+  }))
 
-  // Only offer roles that are actually in use, so the dropdown isn't padding
-  const rolesInUse = ROLES.filter((r) => delegates.some((d) => d.role === r))
   const staffCount = delegates.filter((d) => d.role && d.role !== 'Delegate').length
 
   return (
@@ -72,31 +70,21 @@ export default function RosterFilters({
           ))}
         </select>
 
-        <select
-          value={selectedGrade}
-          onChange={(e) => setSelectedGrade(e.target.value)}
-          className="select-field"
-        >
-          <option value="">All Grades</option>
-          {uniqueGrades.map((grade) => (
-            <option key={grade} value={grade}>
-              {formatGrade(grade)}
-            </option>
-          ))}
-        </select>
+        <FilterDropdown
+          label="Grades"
+          options={gradeOptions}
+          selected={selectedGrades}
+          onChange={setSelectedGrades}
+          emptyText="No grades registered"
+        />
 
-        <select
-          value={selectedRole}
-          onChange={(e) => handleRoleChange(e.target.value)}
-          className="select-field"
-        >
-          <option value="">All Roles</option>
-          {rolesInUse.map((role) => (
-            <option key={role} value={role}>
-              {role}
-            </option>
-          ))}
-        </select>
+        <FilterDropdown
+          label="Roles"
+          options={roleOptions}
+          selected={selectedRoles}
+          onChange={setSelectedRoles}
+          emptyText="No roles in use"
+        />
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-4 border-t border-slate-100 pt-4">

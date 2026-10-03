@@ -1,45 +1,48 @@
 -- ============================================================
---  Grade rename migration
---  Run ONCE in Supabase Dashboard -> SQL Editor
+--  Grade list alignment
+--  Run ONCE in Supabase -> SQL Editor
 --
---  Grades 3-7   : unchanged
---  Grades 8-10  : 8 -> "8 Matric", 9 -> "9 Matric", 10 -> "10 Matric"
---  Grades 11-12 : -> "Year 1" / "Year 2"   (Year 3 is new, for Grade 13)
+--  The school hierarchy changed. Current list, top to bottom:
+--    Year 3, Year 2, Year 1,
+--    10 Matric, 9 Matric, 8 Matric,
+--    Pre-IGCSE,
+--    Grade 6, 5, 4, 3, 2, 1
 --
---  Handles every variant that may have been typed: "8", "Grade 8", "grade 8".
+--  Grade 7 is replaced by Pre-IGCSE. Grades 7-10 as plain numbers
+--  now map onto the Matric levels.
+--
+--  Safe: only rewrites values that no longer exist as-is.
+--  Existing Matric, Year and Grade 1-6 rows are left untouched.
 -- ============================================================
 
 BEGIN;
 
--- 8 / 9 / 10 -> Matric
+-- Grade 7 -> Pre-IGCSE
+UPDATE public.delegates SET grade = 'Pre-IGCSE'
+WHERE lower(trim(grade)) IN ('grade 7', '7');
+
+-- Plain 8/9/10 -> the Matric levels
 UPDATE public.delegates SET grade = '8 Matric'
-WHERE lower(trim(grade)) IN ('8', 'grade 8');
+WHERE lower(trim(grade)) IN ('grade 8', '8');
 
 UPDATE public.delegates SET grade = '9 Matric'
-WHERE lower(trim(grade)) IN ('9', 'grade 9');
+WHERE lower(trim(grade)) IN ('grade 9', '9');
 
 UPDATE public.delegates SET grade = '10 Matric'
-WHERE lower(trim(grade)) IN ('10', 'grade 10');
+WHERE lower(trim(grade)) IN ('grade 10', '10');
 
--- 11 / 12 / 13 -> Year 1 / Year 2 / Year 3
-UPDATE public.delegates SET grade = 'Year 1'
-WHERE lower(trim(grade)) IN ('11', 'grade 11');
-
-UPDATE public.delegates SET grade = 'Year 2'
-WHERE lower(trim(grade)) IN ('12', 'grade 12');
-
-UPDATE public.delegates SET grade = 'Year 3'
-WHERE lower(trim(grade)) IN ('13', 'grade 13');
-
--- Normalise the untouched primary grades so every row uses one exact spelling
+-- Primary grades: normalise to the "Grade N" spelling
 UPDATE public.delegates SET grade = 'Grade ' || trim(grade)
-WHERE trim(grade) IN ('3','4','5','6','7');
-
-UPDATE public.delegates SET grade = 'Grade ' || trim(grade)
-WHERE lower(trim(grade)) IN ('grade 3','grade 4','grade 5','grade 6','grade 7')
-  AND grade NOT LIKE 'Grade%';
+WHERE trim(grade) IN ('1','2','3','4','5','6')
+   OR lower(trim(grade)) IN ('grade 1','grade 2','grade 3','grade 4','grade 5','grade 6');
 
 COMMIT;
 
--- ---------- Verify: expect 11 distinct values, no bare numbers ----------
--- SELECT grade, count(*) FROM public.delegates GROUP BY grade ORDER BY grade;
+-- ---------- Verify ----------
+-- SELECT grade, count(*) FROM public.delegates
+-- GROUP BY grade
+-- ORDER BY array_position(
+--   ARRAY['Year 3','Year 2','Year 1','10 Matric','9 Matric','8 Matric',
+--         'Pre-IGCSE','Grade 6','Grade 5','Grade 4','Grade 3','Grade 2','Grade 1'],
+--   grade
+-- );

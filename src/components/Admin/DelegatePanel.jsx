@@ -68,6 +68,12 @@ export default function DelegatePanel({ delegates, committees, loading, onAdd, o
     (a, b) => gradeSort(a) - gradeSort(b),
   )
 
+  // Include any role already on a record even if it's no longer offered,
+  // so removing a role never makes an existing delegate uneditable
+  const rolesInUse = [
+    ...new Set([...ROLES, ...delegates.map((d) => d.role).filter(Boolean)]),
+  ]
+
   const [sortField, setSortField] = useState('name')
   const [sortDir, setSortDir] = useState('asc')
 
@@ -209,7 +215,7 @@ export default function DelegatePanel({ delegates, committees, loading, onAdd, o
                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                 className="select-field"
               >
-                {ROLES.map((role) => (
+                {rolesInUse.map((role) => (
                   <option key={role} value={role}>
                     {role}
                   </option>

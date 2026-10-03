@@ -5,8 +5,8 @@ export function cn(...inputs) {
   return twMerge(clsx(inputs))
 }
 
-/** Roles a delegate can be registered as. */
-export const ROLES = ['Delegate', 'Chair', 'Vice Chair', 'Rapporteur', 'Observer', 'Gavel']
+/** Roles a delegate can be registered as, in seniority order. */
+export const ROLES = ['Chair', 'Vice Chair', 'Delegate', 'Observer']
 
 /**
  * Staff roles (chairs, rapporteurs, observers) represent the conference itself
