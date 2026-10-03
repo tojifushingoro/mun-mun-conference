@@ -160,5 +160,5 @@ GROUP BY d.id, d.name, d.country, d.grade, d.role, d.committee_id, c.name;
 --  and is excluded from the scoreboard, and does not require a
 --  country.
 -- ============================================================
---  'Chair'  'Vice Chair'  'Delegate'  'Observer'
+--  'Chair'  'ACD'  'Delegate'  'Observer'
 -- ============================================================

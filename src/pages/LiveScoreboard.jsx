@@ -59,7 +59,7 @@ export default function LiveScoreboard() {
   // Everyone registered to the selected committee - used to resolve names
   const committeeDelegates = delegates.filter((d) => d.committee_id === activeCommittee)
 
-  // Staff Dias (Chair, Vice Chair, Rapporteur, Observer, Gavel) run the
+  // Staff Dias (Chair, ACD, Observer) run the
   // committee rather than represent a nation, so they get no scoreboard row.
   const scoredDelegates = committeeDelegates.filter((d) => !isStaffRole(d.role))
 

@@ -173,7 +173,7 @@ export default function DelegatePanel({ delegates, committees, loading, onAdd, o
               />
               {isStaffRole(formData.role) && (
                 <p className="mt-1 text-xs text-slate-500">
-                  Staff roles (Chair, Vice Chair, Rapporteur, Observer) don't represent a nation.
+                  Staff roles (Chair, ACD, Observer) don't represent a nation.
                 </p>
               )}
             </div>

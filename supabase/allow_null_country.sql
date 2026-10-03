@@ -2,7 +2,7 @@
 --  Allow staff roles to have no country
 --  Run ONCE in Supabase Dashboard -> SQL Editor
 --
---  Chairs, Vice Chairs, Rapporteurs, Observers and Gavel officers
+--  Chairs, ACDs, Rapporteurs, Observers and Gavel officers
 --  represent the conference, not a nation, so they can now be
 --  registered without a country. Country representatives
 --  (role = 'Delegate') still supply one, enforced in the UI.

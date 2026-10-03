@@ -6,7 +6,7 @@ export function cn(...inputs) {
 }
 
 /** Roles a delegate can be registered as, in seniority order. */
-export const ROLES = ['Chair', 'Vice Chair', 'Delegate', 'Observer']
+export const ROLES = ['Chair', 'ACD', 'Delegate', 'Observer']
 
 /**
  * Staff roles (chairs, rapporteurs, observers) represent the conference itself
