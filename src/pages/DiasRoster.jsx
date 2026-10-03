@@ -96,6 +96,7 @@ export default function DiasRoster() {
       name: byText((d) => d.name || ''),
       country: byText((d) => d.country || ''),
       committee: byText((d) => d.committees?.name || ''),
+      role: byText((d) => d.role || ''),
       grade: byNumber((d) => gradeSort(d.grade)),
       score: byNumber((d) => scoreTotals.get(String(d.id)) ?? 0),
     }

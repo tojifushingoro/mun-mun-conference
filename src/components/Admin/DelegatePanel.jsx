@@ -68,6 +68,63 @@ export default function DelegatePanel({ delegates, committees, loading, onAdd, o
     (a, b) => gradeSort(a) - gradeSort(b),
   )
 
+  const [sortField, setSortField] = useState('name')
+  const [sortDir, setSortDir] = useState('asc')
+
+  // Clicking a header sorts by it; clicking again flips direction
+  const handleSort = (field) => {
+    if (field === sortField) {
+      setSortDir((prev) => (prev === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortField(field)
+      setSortDir('asc')
+    }
+  }
+
+  const SortHeader = ({ field, children, className = '' }) => {
+    const isActive = sortField === field
+    return (
+      <th className={`px-4 py-3 ${className}`}>
+        <button
+          type="button"
+          onClick={() => handleSort(field)}
+          className={`inline-flex items-center gap-1 text-xs font-medium uppercase tracking-wider transition-colors hover:text-blue-600 focus:outline-none focus-visible:text-blue-600 ${
+            isActive ? 'text-blue-600' : 'text-slate-500'
+          }`}
+        >
+          {children}
+          <span className="text-[10px] leading-none">
+            {isActive ? (sortDir === 'asc' ? '▲' : '▼') : '↕'}
+          </span>
+        </button>
+      </th>
+    )
+  }
+
+  const sortedDelegates = [...delegates].sort((a, b) => {
+    const factor = sortDir === 'asc' ? 1 : -1
+    const get = (d) => {
+      switch (sortField) {
+        case 'name':
+          return d.name || ''
+        case 'country':
+          return d.country || ''
+        case 'grade':
+          return gradeSort(d.grade)
+        case 'committee':
+          return d.committees?.name || ''
+        case 'role':
+          return d.role || ''
+        default:
+          return 0
+      }
+    }
+    const av = get(a)
+    const bv = get(b)
+    if (typeof av === 'number' && typeof bv === 'number') return factor * (av - bv)
+    return factor * String(av).localeCompare(String(bv))
+  })
+
   return (
     <div className="card">
       <div className="mb-6 flex items-center justify-between">
@@ -194,20 +251,18 @@ export default function DelegatePanel({ delegates, committees, loading, onAdd, o
           <table className="min-w-full divide-y divide-slate-200">
             <thead>
               <tr className="bg-slate-50">
-                {['Name', 'Country', 'Grade', 'Committee', 'Role', 'Actions'].map((h, i) => (
-                  <th
-                    key={h}
-                    className={`px-4 py-3 text-xs font-medium uppercase tracking-wider text-slate-500 ${
-                      i === 5 ? 'text-right' : 'text-left'
-                    }`}
-                  >
-                    {h}
-                  </th>
-                ))}
+                <SortHeader field="name" className="text-left">Name</SortHeader>
+                <SortHeader field="country" className="text-left">Country</SortHeader>
+                <SortHeader field="grade" className="text-left">Grade</SortHeader>
+                <SortHeader field="committee" className="text-left">Committee</SortHeader>
+                <SortHeader field="role" className="text-left">Role</SortHeader>
+                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-500">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 bg-white">
-              {delegates.map((delegate) => (
+              {sortedDelegates.map((delegate) => (
                 <tr key={delegate.id} className="hover:bg-slate-50">
                   <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-slate-900">
                     <span className="inline-flex items-center gap-1.5">

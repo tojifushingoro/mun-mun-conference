@@ -8,6 +8,7 @@ export const SORT_OPTIONS = [
   { value: 'grade_asc', label: 'Grade (youngest first)' },
   { value: 'grade_desc', label: 'Grade (oldest first)' },
   { value: 'committee_asc', label: 'Committee (A to Z)' },
+  { value: 'role_asc', label: 'Role (A to Z)' },
   { value: 'country_asc', label: 'Country (A to Z)' },
   { value: 'score_desc', label: 'Total score (highest first)' },
   { value: 'score_asc', label: 'Total score (lowest first)' },
