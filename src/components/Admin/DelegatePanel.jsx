@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Edit2, Trash2, Save, X, UserPlus } from 'lucide-react'
 import LoadingSpinner from '../Common/LoadingSpinner'
 import { formatGrade, normalizeGrade, gradeSort, GRADE_LEVELS, ROLES, isStaffRole } from '../../lib/utils'
@@ -64,6 +64,24 @@ export default function DelegatePanel({ delegates, committees, loading, onAdd, o
   }
 
   const showForm = isAdding || editingId
+
+  // The form sits above the table, so editing a delegate you scrolled down to
+  // would otherwise open the editor off-screen. Follow it back into view.
+  const formRef = useRef(null)
+  useEffect(() => {
+    if (!editingId || !formRef.current) return
+
+    const reduce =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    // One frame so the freshly mounted form has been laid out before we measure it
+    const frame = requestAnimationFrame(() => {
+      formRef.current?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [editingId])
+
   const grades = [...new Set(delegates.map((d) => normalizeGrade(d.grade)).filter(Boolean))].sort(
     (a, b) => gradeSort(a) - gradeSort(b),
   )
@@ -144,7 +162,11 @@ export default function DelegatePanel({ delegates, committees, loading, onAdd, o
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="mb-6 space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
+        <form
+          ref={formRef}
+          onSubmit={handleSubmit}
+          className="mb-6 space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-4 scroll-mt-4"
+        >
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="mb-1 block text-sm font-medium text-slate-700">Full Name *</label>
