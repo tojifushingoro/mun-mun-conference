@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { X, MapPin, GraduationCap, Users, FileText, Trophy, Trash2 } from 'lucide-react'
 import { formatGrade } from '../../lib/utils'
 import DevTag from '../Common/DevTag'
@@ -42,7 +43,11 @@ export default function DelegateModal({ delegate, scores, isOpen, onClose, onDel
     }
   }
 
-  return (
+  // Portal to <body> so the overlay anchors to the viewport. The page wrapper
+  // uses a transform-based entrance animation, and a retained transform makes
+  // any ancestor a containing block for position:fixed — which would park this
+  // dialog thousands of pixels down the page instead of over the screen.
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm animate-fade-in"
       onClick={onClose}
@@ -159,6 +164,7 @@ export default function DelegateModal({ delegate, scores, isOpen, onClose, onDel
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
