@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback } from 'react'
 import { BarChart3 } from 'lucide-react'
 import CommitteeTab from '../components/Scoreboard/CommitteeTab'
-import TurnLogger from '../components/Scoreboard/TurnLogger'
 import ScoreboardTable from '../components/Scoreboard/ScoreboardTable'
 import ScoreLog from '../components/Scoreboard/ScoreLog'
+import CategoryManager from '../components/Scoreboard/CategoryManager'
 import LoadingSpinner from '../components/Common/LoadingSpinner'
 import { useCommittees } from '../hooks/useCommittees'
 import { useDelegates } from '../hooks/useDelegates'
 import { useScores } from '../hooks/useScores'
+import { useScoreCategories } from '../hooks/useScoreCategories'
 import { useRealtimeSubscriptions } from '../hooks/useRealtimeScores'
 import { isStaffRole } from '../lib/utils'
 
@@ -15,6 +16,7 @@ export default function LiveScoreboard() {
   const { committees, loading: committeesLoading } = useCommittees()
   const { delegates, loading: delegatesLoading, setDelegates, refetch: refetchDelegates } = useDelegates()
   const { scores, loading: scoresLoading, addScore, setScores, deleteScore } = useScores()
+  const { categories, loading: categoriesLoading, addCategory, updateCategory, deleteCategory } = useScoreCategories()
 
   const [activeCommittee, setActiveCommittee] = useState('')
 
@@ -68,7 +70,8 @@ export default function LiveScoreboard() {
   const committeeDelegateIds = new Set(scoredDelegates.map((d) => String(d.id)))
   const committeeScores = scores.filter((s) => committeeDelegateIds.has(String(s.delegate_id)))
   const activeName = committees.find((c) => c.id === activeCommittee)?.name
-  const loading = committeesLoading || delegatesLoading || scoresLoading
+  const committeeCategories = categories.filter((c) => String(c.committee_id) === String(activeCommittee))
+  const loading = committeesLoading || delegatesLoading || scoresLoading || categoriesLoading
 
   return (
     <div className="space-y-6">
@@ -84,10 +87,14 @@ export default function LiveScoreboard() {
         </div>
       </div>
 
-      <TurnLogger
-        delegates={delegates.filter((d) => !isStaffRole(d.role))}
-        committees={committees}
-        onAddScore={addScore}
+      <CategoryManager
+        committeeId={activeCommittee}
+        committeeName={activeName}
+        categories={committeeCategories}
+        loading={categoriesLoading}
+        onAdd={addCategory}
+        onUpdate={updateCategory}
+        onDelete={deleteCategory}
       />
 
       <CommitteeTab
@@ -108,7 +115,12 @@ export default function LiveScoreboard() {
         <div className="space-y-6">
           <div className="card">
             <h2 className="mb-4 text-lg font-semibold text-slate-900">{activeName}</h2>
-            <ScoreboardTable delegates={scoredDelegates} scores={scores} onAddScore={addScore} />
+            <ScoreboardTable
+              delegates={scoredDelegates}
+              scores={committeeScores}
+              categories={committeeCategories}
+              onAddScore={addScore}
+            />
           </div>
           <ScoreLog
             scores={committeeScores}

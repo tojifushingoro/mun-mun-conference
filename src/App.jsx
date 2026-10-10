@@ -1,5 +1,26 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { LayoutDashboard, Users, BarChart3, Globe } from 'lucide-react'
+
+// Per-page titles + descriptions for SEO/social previews (items 3 & 4).
+// The base title/description in index.html loads first; these take over the
+// moment a tab is chosen so each view has its own meta.
+const PAGE_META = {
+  admin: {
+    title: 'Admin Dashboard — MUN Conference Manager',
+    description:
+      'Set up committees and register delegates for the Model United Nations conference. Manage the Dias roster, grades, and staff roles.',
+  },
+  roster: {
+    title: 'Delegate Roster — MUN Conference Manager',
+    description:
+      'Browse every delegate registered for the MUN conference by committee, grade, country, and staff role.',
+  },
+  scoreboard: {
+    title: 'Live Scoreboard — MUN Conference Manager',
+    description:
+      'Per-committee community scoring with per-delegate category limits, live totals, and a full turn log.',
+  },
+}
 import NavTabs from './components/Common/NavTabs'
 import ConnectionBadge from './components/Common/ConnectionBadge'
 import SoundToggle from './components/Common/SoundToggle'
@@ -15,6 +36,13 @@ const TABS = [
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('admin')
+
+  useEffect(() => {
+    const meta = PAGE_META[activeTab] || PAGE_META.admin
+    document.title = meta.title
+    const description = document.querySelector('meta[name="description"]')
+    if (description) description.setAttribute('content', meta.description)
+  }, [activeTab])
 
   return (
     <div className="min-h-screen bg-slate-50">

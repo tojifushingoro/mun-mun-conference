@@ -8,20 +8,31 @@ export default function CommitteePanel({ committees, loading, onAdd, onUpdate, o
   const [isAdding, setIsAdding] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [formData, setFormData] = useState(EMPTY)
+  const [formError, setFormError] = useState('')
 
   const reset = () => {
     setFormData(EMPTY)
     setIsAdding(false)
     setEditingId(null)
+    setFormError('')
+  }
+
+  const update = (patch) => {
+    setFormError('')
+    setFormData({ ...formData, ...patch })
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!formData.name.trim()) return
+    if (!formData.name.trim()) {
+      setFormError('Give the committee a name.')
+      return
+    }
 
     const payload = { name: formData.name.trim(), description: formData.description.trim() || null }
     const ok = editingId ? await onUpdate(editingId, payload) : await onAdd(payload)
     if (ok) reset()
+    else setFormError('Could not save. Check your connection and try again.')
   }
 
   const handleEdit = (committee) => {
@@ -56,9 +67,10 @@ export default function CommitteePanel({ committees, loading, onAdd, onUpdate, o
             <input
               type="text"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) => update({ name: e.target.value })}
               placeholder="e.g., Security Council"
-              className="input-field"
+              className={`input-field ${formError ? 'border-red-400 focus:border-red-500 focus:ring-red-500' : ''}`}
+              aria-invalid={!!formError}
               required
             />
           </div>
@@ -66,12 +78,13 @@ export default function CommitteePanel({ committees, loading, onAdd, onUpdate, o
             <label className="mb-1 block text-sm font-medium text-slate-700">Description</label>
             <textarea
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(e) => update({ description: e.target.value })}
               placeholder="Brief description of the committee"
               rows={2}
               className="input-field"
             />
           </div>
+          {formError && <p className="text-sm font-medium text-red-600">{formError}</p>}
           <div className="flex gap-2">
             <button type="submit" className="btn-primary">
               <Save className="h-4 w-4" />

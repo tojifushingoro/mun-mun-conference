@@ -17,20 +17,37 @@ export default function DelegatePanel({ delegates, committees, loading, onAdd, o
   const [isAdding, setIsAdding] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [formData, setFormData] = useState(EMPTY)
+  const [formError, setFormError] = useState('')
 
   const reset = () => {
     setFormData(EMPTY)
     setIsAdding(false)
     setEditingId(null)
+    setFormError('')
+  }
+
+  const update = (patch) => {
+    setFormError('')
+    setFormData({ ...formData, ...patch })
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!formData.name.trim() || !formData.committee_id) return
+    if (!formData.name.trim()) {
+      setFormError('A name is required.')
+      return
+    }
+    if (!formData.committee_id) {
+      setFormError('Pick the committee this delegate belongs to.')
+      return
+    }
 
     // Country is mandatory for country representatives, optional for staff roles
     const staff = isStaffRole(formData.role)
-    if (!staff && !formData.country.trim()) return
+    if (!staff && !formData.country.trim()) {
+      setFormError('Country is required for delegates.')
+      return
+    }
 
     const payload = {
       name: formData.name.trim(),
@@ -43,6 +60,7 @@ export default function DelegatePanel({ delegates, committees, loading, onAdd, o
 
     const ok = editingId ? await onUpdate(editingId, payload) : await onAdd(payload)
     if (ok) reset()
+    else setFormError('Could not save. Check your connection and try again.')
   }
 
   const handleEdit = (delegate) => {
@@ -173,9 +191,10 @@ export default function DelegatePanel({ delegates, committees, loading, onAdd, o
               <input
                 type="text"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) => update({ name: e.target.value })}
                 placeholder="e.g., John Smith"
-                className="input-field"
+                className={`input-field ${formError ? 'border-red-400 focus:border-red-500 focus:ring-red-500' : ''}`}
+                aria-invalid={!!formError}
                 required
               />
             </div>
@@ -186,7 +205,7 @@ export default function DelegatePanel({ delegates, committees, loading, onAdd, o
               <input
                 type="text"
                 value={formData.country}
-                onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                onChange={(e) => update({ country: e.target.value })}
                 placeholder={
                   isStaffRole(formData.role) ? 'Optional for staff roles' : 'e.g., United States'
                 }
@@ -203,7 +222,7 @@ export default function DelegatePanel({ delegates, committees, loading, onAdd, o
               <label className="mb-1 block text-sm font-medium text-slate-700">Grade</label>
               <select
                 value={formData.grade}
-                onChange={(e) => setFormData({ ...formData, grade: e.target.value })}
+                onChange={(e) => update({ grade: e.target.value })}
                 className="select-field"
               >
                 <option value="">Select Grade</option>
@@ -218,7 +237,7 @@ export default function DelegatePanel({ delegates, committees, loading, onAdd, o
               <label className="mb-1 block text-sm font-medium text-slate-700">Committee *</label>
               <select
                 value={formData.committee_id}
-                onChange={(e) => setFormData({ ...formData, committee_id: e.target.value })}
+                onChange={(e) => update({ committee_id: e.target.value })}
                 className="select-field"
                 required
               >
@@ -234,7 +253,7 @@ export default function DelegatePanel({ delegates, committees, loading, onAdd, o
               <label className="mb-1 block text-sm font-medium text-slate-700">Role</label>
               <select
                 value={formData.role}
-                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                onChange={(e) => update({ role: e.target.value })}
                 className="select-field"
               >
                 {rolesInUse.map((role) => (
@@ -249,12 +268,13 @@ export default function DelegatePanel({ delegates, committees, loading, onAdd, o
             <label className="mb-1 block text-sm font-medium text-slate-700">Notes</label>
             <textarea
               value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              onChange={(e) => update({ notes: e.target.value })}
               placeholder="Special accommodations, MUN experience, speaking strengths..."
               rows={2}
               className="input-field"
             />
           </div>
+          {formError && <p className="text-sm font-medium text-red-600">{formError}</p>}
           <div className="flex gap-2">
             <button type="submit" className="btn-primary">
               <Save className="h-4 w-4" />

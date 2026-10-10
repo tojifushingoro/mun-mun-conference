@@ -3,23 +3,24 @@ import { Check, X } from 'lucide-react'
 import { formatGrade } from '../../lib/utils'
 import DevTag from '../Common/DevTag'
 import { playScoreAdded, playError } from '../../lib/sfx'
+import { categoryTotal, remainingPoints } from '../../lib/categories'
+import toast from 'react-hot-toast'
 
-export default function ScoreboardTable({ delegates, scores, onAddScore }) {
+export default function ScoreboardTable({ delegates, scores, categories = [], onAddScore }) {
   const [editing, setEditing] = useState(null) // { delegateId, category }
   const [draft, setDraft] = useState('')
 
-  const getCategoryTotal = (delegateId, category) =>
-    scores
-      .filter((s) => s.delegate_id === delegateId && s.category === category)
-      .reduce((sum, s) => sum + (Number(s.points) || 0), 0)
+  const capByName = new Map(categories.map((c) => [c.name, Number(c.max_points)]))
 
   const getTotal = (delegateId) =>
     scores.filter((s) => s.delegate_id === delegateId).reduce((sum, s) => sum + (Number(s.points) || 0), 0)
 
-  const delegateIds = new Set(delegates.map((d) => d.id))
-  const categories = [
-    ...new Set(scores.filter((s) => delegateIds.has(s.delegate_id)).map((s) => s.category).filter(Boolean)),
-  ].sort((a, b) => a.localeCompare(b))
+  // One column per declared category, plus any category that still has turns
+  // after its definition was deleted — so no earned points ever disappear
+  // from the table while they still count toward a delegate's total.
+  const columnNames = [
+    ...new Set([...categories.map((c) => c.name), ...scores.map((s) => s.category).filter(Boolean)]),
+  ]
 
   const startEdit = (delegateId, category) => {
     setEditing({ delegateId, category })
@@ -32,6 +33,22 @@ export default function ScoreboardTable({ delegates, scores, onAddScore }) {
     if (!editing) return
     const value = Number(draft)
     if (draft !== '' && !Number.isNaN(value)) {
+      const cap = capByName.get(editing.category)
+      const current = categoryTotal(scores, editing.delegateId, editing.category)
+
+      // Mirrors the database trigger: only a positive entry can break a cap,
+      // so negative corrections stay allowed even if already over.
+      if (cap != null && value > 0 && current + value > cap) {
+        toast.error(
+          `"${editing.category}" is capped at ${cap} — ${current.toFixed(2)} already earned, so ${
+            cap - current
+          } points remaining.`,
+        )
+        playError()
+        setEditing(null)
+        return
+      }
+
       const ok = await onAddScore({
         delegate_id: editing.delegateId,
         category: editing.category,
@@ -45,7 +62,6 @@ export default function ScoreboardTable({ delegates, scores, onAddScore }) {
 
   const sorted = [...delegates].sort((a, b) => getTotal(b.id) - getTotal(a.id))
 
-  // Give the podium a little visual weight so chairs can spot leaders fast
   const rankStyles = {
     0: 'bg-amber-100 text-amber-800 ring-amber-300',
     1: 'bg-slate-200 text-slate-700 ring-slate-300',
@@ -77,14 +93,20 @@ export default function ScoreboardTable({ delegates, scores, onAddScore }) {
             <th className="sticky left-52 z-10 bg-slate-50 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
               Delegate
             </th>
-            {categories.map((category) => (
-              <th
-                key={category}
-                className="whitespace-nowrap px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-slate-500"
-              >
-                {category}
-              </th>
-            ))}
+            {columnNames.map((category) => {
+              const cap = capByName.get(category)
+              return (
+                <th
+                  key={category}
+                  className="whitespace-nowrap px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-slate-500"
+                >
+                  <div className="flex flex-col items-center">
+                    <span>{category}</span>
+                    {cap != null && <span className="text-[10px] font-normal normal-case text-slate-400">max {cap}</span>}
+                  </div>
+                </th>
+              )
+            })}
             <th className="whitespace-nowrap px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-blue-600">
               Total Score
             </th>
@@ -117,9 +139,11 @@ export default function ScoreboardTable({ delegates, scores, onAddScore }) {
                   <span className="ml-2 text-xs text-slate-400">{formatGrade(delegate.grade)}</span>
                 </td>
 
-                {categories.map((category) => {
+                {columnNames.map((category) => {
                   const isEditing = editing?.delegateId === delegate.id && editing?.category === category
-                  const value = getCategoryTotal(delegate.id, category)
+                  const value = categoryTotal(scores, delegate.id, category)
+                  const cap = capByName.get(category)
+                  const remaining = remainingPoints(cap, scores, delegate.id, category)
                   return (
                     <td key={category} className="px-2 py-1 text-center text-sm">
                       {isEditing ? (
@@ -150,9 +174,20 @@ export default function ScoreboardTable({ delegates, scores, onAddScore }) {
                           className={`w-full rounded px-2 py-1 transition-colors hover:bg-blue-50 ${
                             value !== 0 ? 'text-slate-700' : 'text-slate-300'
                           }`}
-                          title="Click to add points"
+                          title={
+                            cap != null
+                              ? `Add points — ${remaining.toFixed(2)} of ${cap} remaining`
+                              : 'Click to add points'
+                          }
                         >
-                          {value !== 0 ? value.toFixed(2) : '–'}
+                          {value !== 0 ? (
+                            <>
+                              {value.toFixed(2)}
+                              {cap != null && <span className="ml-0.5 text-[10px] text-slate-400">/{cap}</span>}
+                            </>
+                          ) : (
+                            '–'
+                          )}
                         </button>
                       )}
                     </td>
@@ -168,7 +203,9 @@ export default function ScoreboardTable({ delegates, scores, onAddScore }) {
         </tbody>
       </table>
       <p className="border-t border-slate-200 bg-slate-50 px-4 py-2 text-xs text-slate-500">
-        Click any category cell to quickly add points. Rows are ranked by total score.
+        {columnNames.length === 0
+          ? 'No scoring categories yet — create one in Scoring Categories at the top.'
+          : 'Click any category cell to add points. A delegate cannot earn past a category\'s max. Rows are ranked by total score.'}
       </p>
     </div>
   )
